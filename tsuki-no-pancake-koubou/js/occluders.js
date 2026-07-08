@@ -5,7 +5,7 @@
 // ============================================================
 
 import { state, TAU, rand } from './state.js';
-import { makeOccluder } from './light.js';
+import { makeOccluder, occluderRadius } from './light.js';
 
 let craterSeed = [];
 
@@ -19,13 +19,21 @@ export function initOccluders() {
 }
 
 // おきば (ホーム位置) — レイアウト変更時にも呼ぶ
+// お皿のつかみ判定と重ならないよう、皿の外側に置く
 export function placeAtHome(force = false) {
-  const { cy, plateR } = state.layout;
+  const { cx, cy, plateR, R, portrait } = state.layout;
   const { W } = state;
-  const homes = {
-    moonboard: { x: W * 0.14, y: cy + plateR * 0.55 },
-    cookie: { x: W * 0.86, y: cy + plateR * 0.6 },
-  };
+  const mbR = occluderRadius('moonboard');
+  const ckR = occluderRadius('cookie');
+  const homes = portrait
+    ? {
+        moonboard: { x: Math.max(W * 0.16, mbR + 8), y: cy + plateR + R * 0.42 },
+        cookie: { x: Math.min(W * 0.84, W - ckR - 8), y: cy + plateR + R * 0.42 },
+      }
+    : {
+        moonboard: { x: Math.max(cx - plateR - mbR - 24, mbR + 8), y: cy },
+        cookie: { x: Math.min(cx + plateR + ckR + 24, W - ckR - 8), y: cy },
+      };
   if (state.occluders.length === 0) {
     const mb = makeOccluder('moonboard', homes.moonboard.x, homes.moonboard.y);
     const ck = makeOccluder('cookie', homes.cookie.x, homes.cookie.y);
@@ -35,6 +43,7 @@ export function placeAtHome(force = false) {
   } else {
     for (const oc of state.occluders) {
       oc.home = homes[oc.kind];
+      oc.r = occluderRadius(oc.kind); // リサイズ後の再計算
       if (force && !oc.grabbed) { oc.x = oc.home.x; oc.y = oc.home.y; }
     }
   }

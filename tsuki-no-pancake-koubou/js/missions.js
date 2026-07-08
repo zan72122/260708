@@ -7,49 +7,53 @@ import { state, emit } from './state.js';
 import { spawnConfetti } from './particles.js';
 import { sfxFanfare } from './audio.js';
 
-// check(c) は counters を見て達成数(0..goal)を返す
+// check(c, b) は 現在の counters と 開始時スナップショット b から
+// ミッション開始後の達成数(0..goal)を返す
+const delta = (c, b, key) => Math.max(0, c[key] - b[key]);
+
 const MISSIONS = [
   {
     id: 'butter',
     icon: '🧈',
     text: 'ひかりで バターを とかそう',
     goal: 1,
-    check: (c) => c.butterMelted,
+    check: (c, b) => delta(c, b, 'butterMelted'),
   },
   {
     id: 'strawberry',
     icon: '🍓',
     text: 'いちごを 3こ のせよう',
     goal: 3,
-    check: (c) => c.fruitsPlaced,
+    check: (c, b) => delta(c, b, 'fruitsPlaced'),
   },
   {
     id: 'choc',
     icon: '🍫',
     text: 'かげで チョコを カチカチに しよう',
     goal: 10,
-    check: (c) => c.chocHardened,
+    check: (c, b) => delta(c, b, 'chocHardened'),
   },
   {
     id: 'honey',
     icon: '🍯',
     text: 'はちみつを あたたかいほうへ ながそう',
     goal: 1,
-    check: (c) => c.honeyFlow,
+    check: (c, b) => delta(c, b, 'honeyFlow'),
   },
   {
     id: 'sugar',
     icon: '❄️',
     text: 'こなざとうで かげの かたちを のこそう',
     goal: 3,
-    check: (c) => Math.min(c.sugarSprinkled, c.sugarMelted > 1.2 ? 3 : 0),
+    check: (c, b) =>
+      Math.min(delta(c, b, 'sugarSprinkled'), delta(c, b, 'sugarMelted') > 1.2 ? 3 : 0),
   },
   {
     id: 'eclipse',
     icon: '🌑',
     text: 'クッキーで にっしょくを つくろう',
     goal: 1,
-    check: (c) => c.eclipses,
+    check: (c, b) => delta(c, b, 'eclipses'),
   },
 ];
 
@@ -89,9 +93,7 @@ export function updateMissions(dt) {
     }
     return;
   }
-  const now = def.check(state.counters);
-  const base = def.check(mission.baseline);
-  const p = Math.min(def.goal, Math.max(0, now - base));
+  const p = Math.min(def.goal, def.check(state.counters, mission.baseline));
   if (p !== mission.progress) {
     mission.progress = p;
     emit('missionProgress', currentMission());

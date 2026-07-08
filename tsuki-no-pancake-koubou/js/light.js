@@ -10,16 +10,26 @@ import { state, CONST, clamp, smoothstep, dist, emit, TAU } from './state.js';
 export const LIGHT_TILT = { x: 0.06, y: 0.13 };
 
 // 遮蔽物 (ワールド座標・皿と一緒には回らない)
+export function occluderRadius(kind) {
+  const { R } = state.layout;
+  const { W } = state;
+  // 小さい画面では板が皿やUIと重ならないようサイズを抑える
+  return kind === 'moonboard'
+    ? Math.min(R * 0.62, W * 0.17)
+    : Math.min(R * 0.30, W * 0.09);
+}
+
 export function makeOccluder(kind, x, y) {
   const R = state.layout.R;
+  const r = occluderRadius(kind);
   const def = {
-    moonboard: { r: R * 0.62, soft: R * 0.16, dark: 0.92 },
-    cookie: { r: R * 0.30, soft: R * 0.10, dark: 0.88 },
+    moonboard: { soft: R * 0.16, dark: 0.92 },
+    cookie: { soft: R * 0.10, dark: 0.88 },
   }[kind];
   return {
     kind,
     x, y,
-    r: def.r,
+    r,
     soft: def.soft,
     dark: def.dark,
     holdH: R * 0.5, // 浮いている高さ (見た目用)
@@ -93,6 +103,8 @@ function updateEclipse() {
     const c = shadowCenter(oc);
     const d = dist(c.x, c.y, cx, cy);
     const cover = 1 - smoothstep(0, R * CONST.ECLIPSE_DIST + oc.r * 0.35, d);
+    // 遮蔽物ごとのコロナの強さ (なめらかに追従)
+    oc.glow = (oc.glow || 0) + (cover - (oc.glow || 0)) * clamp(state.dt * 3, 0, 1);
     if (cover > best) best = cover;
   }
   const was = state.eclipseActive;
@@ -115,8 +127,8 @@ export function drawShadows(ctx) {
   ctx.globalCompositeOperation = 'multiply';
   for (const s of shadowCache) {
     const g = ctx.createRadialGradient(s.x, s.y, Math.max(1, s.r - s.soft), s.x, s.y, s.r + s.soft);
-    const inner = 1 - s.dark * 0.75;
-    g.addColorStop(0, `rgba(${58 * inner + 30},${44 * inner + 26},${86 * inner + 40},${0.55 * s.dark + 0.25})`);
+    const inner = 1 - s.dark * 0.8;
+    g.addColorStop(0, `rgba(${52 * inner + 26},${40 * inner + 22},${80 * inner + 38},${0.62 * s.dark + 0.3})`);
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -150,17 +162,22 @@ export function drawWarmLight(ctx) {
 export function drawCorona(ctx) {
   if (state.eclipse < 0.2) return;
   for (const oc of state.occluders) {
-    const a = state.eclipse * 0.9;
+    if (!oc.glow || oc.glow < 0.2) continue;
+    const a = oc.glow * 0.9;
     const pulse = 1 + 0.05 * Math.sin(state.time * 3);
-    const g = ctx.createRadialGradient(oc.x, oc.y, oc.r * 0.92, oc.x, oc.y, oc.r * 1.7 * pulse);
-    g.addColorStop(0, `rgba(255,246,214,${a * 0.9})`);
-    g.addColorStop(0.25, `rgba(255,230,170,${a * 0.4})`);
+    const outer = oc.r * 1.9 * pulse;
+    // 遮蔽物の内側は透明のまま、縁だけが輝く「輪」を作る
+    const edge = (oc.r * 0.97) / outer;
+    const g = ctx.createRadialGradient(oc.x, oc.y, 0, oc.x, oc.y, outer);
+    g.addColorStop(Math.max(0, edge - 0.03), 'rgba(255,246,214,0)');
+    g.addColorStop(edge, `rgba(255,248,220,${a})`);
+    g.addColorStop(Math.min(1, edge + 0.13), `rgba(255,232,175,${a * 0.45})`);
     g.addColorStop(1, 'rgba(255,220,150,0)');
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(oc.x, oc.y, oc.r * 1.8 * pulse, 0, TAU);
+    ctx.arc(oc.x, oc.y, outer, 0, TAU);
     ctx.fill();
     ctx.restore();
   }

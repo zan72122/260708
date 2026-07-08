@@ -3,9 +3,27 @@
 import { chromium } from "playwright";
 import { fileURLToPath } from "url";
 import path from "path";
+import http from "http";
+import fs from "fs";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const url = "file://" + path.join(dir, "..", "index.html");
+const root = path.join(dir, "..");
+
+// ESモジュールは file:// では読めないため簡易HTTPサーバを立てる
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css" };
+const server = http.createServer((req, res) => {
+  const file = path.join(root, req.url === "/" ? "index.html" : decodeURIComponent(req.url));
+  try {
+    const body = fs.readFileSync(file);
+    res.writeHead(200, { "Content-Type": MIME[path.extname(file)] || "application/octet-stream" });
+    res.end(body);
+  } catch {
+    res.writeHead(404);
+    res.end("not found");
+  }
+});
+await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+const url = `http://127.0.0.1:${server.address().port}/index.html`;
 
 async function run(viewport, tag) {
   const browser = await chromium.launch();
@@ -18,8 +36,8 @@ async function run(viewport, tag) {
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(dir, `${tag}-01-title.png`) });
 
-  // はじめる
-  await page.locator("#btn-start").click();
+  // はじめる (パルスアニメーション中でも押せるように force)
+  await page.locator("#btn-start").click({ force: true });
   await page.waitForTimeout(500);
 
   const geom = await page.evaluate(() => {
@@ -27,6 +45,10 @@ async function run(viewport, tag) {
     return { cx: m.cx, cy: m.cy, R: m.R };
   });
   console.log(`[${tag}] layout:`, JSON.stringify(geom));
+
+  // テストを決定的にするため自動回転を止める
+  await page.locator("#btn-spin").dispatchEvent("pointerdown");
+  await page.waitForTimeout(600);
 
   const tap = async (x, y) => {
     await page.mouse.move(x, y);
@@ -95,6 +117,13 @@ async function run(viewport, tag) {
   if (eclipse.eclipses < 1) errors.push("eclipse not triggered");
   await page.screenshot({ path: path.join(dir, `${tag}-03-eclipse.png`) });
 
+  // おつきさまボードをパンケーキ全体にかざしてチョコを影に入れる
+  const moon = await page.evaluate(() => {
+    const oc = window.__game.state.occluders.find((o) => o.kind === "moonboard");
+    return { x: oc.x, y: oc.y };
+  });
+  await drag(moon.x, moon.y, geom.cx, geom.cy + geom.R * 0.2, 300);
+
   // バターが溶け・チョコが固まっているか (少し待って物理を進める)
   await page.waitForTimeout(3500);
   const sim = await page.evaluate(() => {
@@ -128,6 +157,7 @@ async function run(viewport, tag) {
 const portraitErrors = await run({ width: 390, height: 844 }, "portrait");
 const landscapeErrors = await run({ width: 1024, height: 768 }, "landscape");
 const all = [...portraitErrors, ...landscapeErrors];
+server.close();
 if (all.length) {
   console.error("FAILED:", all);
   process.exit(1);

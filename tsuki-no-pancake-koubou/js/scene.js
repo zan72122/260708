@@ -106,7 +106,9 @@ function drawStars(ctx) {
 function drawEarth(ctx) {
   const { W, H } = state;
   const r = Math.min(W, H) * 0.075;
-  const x = W * 0.82, y = H * 0.12;
+  // 縦画面では右上のボタン列を避けて少し左に置く
+  const x = state.layout.portrait ? W * 0.68 : W * 0.82;
+  const y = state.layout.portrait ? H * 0.1 : H * 0.12;
   ctx.save();
   // 大気の光
   const glow = ctx.createRadialGradient(x, y, r * 0.8, x, y, r * 1.6);

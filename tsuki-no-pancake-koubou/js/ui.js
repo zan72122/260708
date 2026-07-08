@@ -144,12 +144,18 @@ function updateMissionCard() {
   document.getElementById('star-count').textContent = String(getStars());
 }
 
-// 毎フレームのDOM更新は星の数だけ (軽量)
+// 毎フレームのDOM更新は差分があるときだけ (軽量)
 let lastStars = -1;
+let lastSpinning = null;
 export function updateUI() {
   const s = getStars();
   if (s !== lastStars) {
     lastStars = s;
     document.getElementById('star-count').textContent = String(s);
+  }
+  // はじいて回したときなど、回転状態の変化をボタンに反映
+  if (state.spinning !== lastSpinning) {
+    lastSpinning = state.spinning;
+    document.getElementById('btn-spin').classList.toggle('active', state.spinning);
   }
 }

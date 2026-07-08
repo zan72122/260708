@@ -76,7 +76,7 @@ function computeLayout() {
   if (portrait) {
     L.R = Math.min(W * 0.36, H * 0.24);
     L.cx = W * 0.5;
-    L.cy = H * 0.52;
+    L.cy = H * 0.47;
   } else {
     L.R = Math.min(W * 0.2, H * 0.3);
     L.cx = W * 0.5;

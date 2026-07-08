@@ -85,7 +85,8 @@ function rabbitPos() {
   if (layout.portrait) {
     return { x: W * 0.13, y: layout.cy - layout.plateR * 1.06, s };
   }
-  return { x: W * 0.09, y: H * 0.6, s };
+  // 横画面: 左上 (左中央は月ボードのおきばと重なる)
+  return { x: W * 0.08, y: H * 0.3, s };
 }
 
 export function drawRabbit(ctx) {

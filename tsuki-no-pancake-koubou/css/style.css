@@ -111,15 +111,14 @@ html, body {
   border: 2px solid rgba(255, 226, 122, 0.6);
 }
 
-/* 右のまるボタン */
+/* 右のまるボタン (ほしバッジの下に縦並び) */
 #side-buttons {
   position: absolute;
   right: calc(env(safe-area-inset-right, 0px) + 10px);
-  top: 50%;
-  transform: translateY(-70%);
+  top: calc(env(safe-area-inset-top, 0px) + 62px);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   pointer-events: auto;
 }
 
@@ -306,8 +305,8 @@ html, body {
 @media (orientation: landscape) and (max-height: 500px) {
   #mission-card { padding: 5px 14px 5px 9px; }
   #mission-icon { font-size: 22px; }
-  #side-buttons { gap: 8px; transform: translateY(-85%); }
-  .round-btn { width: 46px; height: 46px; font-size: 20px; }
+  #side-buttons { gap: 6px; top: calc(env(safe-area-inset-top, 0px) + 52px); }
+  .round-btn { width: 44px; height: 44px; font-size: 20px; }
   .tool-btn { min-width: 56px; padding: 4px 5px 3px; }
   .tool-icon { font-size: 24px; }
 }
