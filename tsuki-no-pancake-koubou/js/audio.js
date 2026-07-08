@@ -34,6 +34,15 @@ export function setSoundOn(on) {
 
 const ok = () => ac && state.soundOn;
 
+// 同じ種類の音の鳴りすぎ防止
+const lastPlay = new Map();
+function gate(key, ms) {
+  const now = performance.now();
+  if ((lastPlay.get(key) || 0) > now - ms) return false;
+  lastPlay.set(key, now);
+  return true;
+}
+
 // ---- 汎用トーン ----
 function tone(freq, dur, { type = 'sine', vol = 0.2, at = 0, slide = 0 } = {}) {
   if (!ok()) return;
@@ -103,8 +112,34 @@ export function sfxShaka() { // 粉砂糖
 }
 
 export function sfxCrack() { // チョコが固まる
+  if (!gate('crack', 130)) return;
   noise(0.05, { vol: 0.14, freq: 2600, q: 3 });
   tone(rand(1050, 1250), 0.1, { type: 'triangle', vol: 0.12 });
+}
+
+export function sfxSizzleHit() { // 光に入った瞬間の「ジュッ!」
+  if (!gate('sizzleHit', 260)) return;
+  noise(0.28, { vol: 0.2, freq: 5200, q: 0.7 });
+  tone(340, 0.24, { type: 'sine', vol: 0.1, slide: -180 });
+}
+
+export function sfxFreeze() { // 影に入った瞬間の氷のチリン
+  if (!gate('freeze', 300)) return;
+  bell(1318.5, 0.8, 0.12);
+  bell(987.77, 0.8, 0.1, 0.1);
+  noise(0.14, { vol: 0.05, freq: 8200, q: 0.8 });
+}
+
+export function sfxCool() { // 影に入った柔らかい「フッ」
+  if (!gate('cool', 260)) return;
+  tone(520, 0.2, { type: 'sine', vol: 0.09, slide: -200 });
+}
+
+export function sfxBreak() { // カチカチチョコが割れる「パキッ!」
+  if (!gate('break', 140)) return;
+  noise(0.1, { vol: 0.24, freq: 950, q: 1.2 });
+  noise(0.07, { vol: 0.2, freq: 2500, q: 2, at: 0.02 });
+  tone(190, 0.16, { type: 'triangle', vol: 0.16, slide: -70 });
 }
 
 export function sfxChime() { // 日食

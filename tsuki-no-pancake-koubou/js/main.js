@@ -11,6 +11,8 @@ import {
   drawPlate, drawPancakeBase, drawSteam,
 } from './pancake.js';
 import { updateLight, drawShadows, drawWarmLight, drawCorona } from './light.js';
+import { initRays, updateRays, drawLightCone, drawShadowShafts } from './rays.js';
+import { initHint, updateHint, drawHint } from './hint.js';
 import { updateButters, drawButters } from './butter.js';
 import { updateHoneys, drawHoneys } from './honey.js';
 import { updateChoc, drawChoc } from './choc.js';
@@ -36,10 +38,12 @@ function boot() {
   window.addEventListener('orientationchange', () => setTimeout(resize, 250));
 
   initScene();
+  initRays();
   initSugar();
   initOccluders();
   initRabbit();
   initMissions();
+  initHint();
   initUI();
   initInput(canvas);
   on('eclipse', sfxChime);
@@ -112,9 +116,11 @@ function update(dt) {
   updateChoc(dt);
   updateSugar(dt);
   updateScene(dt);
+  updateRays(dt);
   updateParticles(dt);
   updateRabbit(dt);
   updateMissions(dt);
+  updateHint(dt);
   updateAudio(dt);
   updateUI();
 }
@@ -122,6 +128,7 @@ function update(dt) {
 function render() {
   const ctx = state.ctx;
   drawScene(ctx);
+  drawLightCone(ctx); // ゴッドレイ (皿の後ろの光の円錐)
   drawPlate(ctx);
   drawPancakeBase(ctx);
   // トッピング (影の下に描き、あとから影を落とす)
@@ -133,6 +140,7 @@ function render() {
   // 光と影
   drawShadows(ctx);
   drawWarmLight(ctx);
+  drawShadowShafts(ctx); // 遮蔽物の下の影の柱
   drawSteam(ctx);
   // 浮いているもの
   drawOccluders(ctx);
@@ -140,6 +148,7 @@ function render() {
   drawLamp(ctx);
   drawParticles(ctx);
   drawRabbit(ctx);
+  drawHint(ctx);
 }
 
 boot();

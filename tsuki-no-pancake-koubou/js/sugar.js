@@ -1,21 +1,24 @@
 // ============================================================
-// sugar.js — 粉砂糖: ふりかけると積もり、ひなたでは溶けて消え、
-// 影の形だけ白く残る (影のスタンプあそび)
+// sugar.js — 粉砂糖: たっぷり積もって白い山になり、
+// ひなたの砂糖はキラキラ光りながらスーッと溶けて消え、
+// 影の形だけがくっきり残る (影のスタンプあそび)
 // パンケーキローカル座標のグリッドで管理する
 // ============================================================
 
 import { state, CONST, clamp, rand, TAU, emit } from './state.js';
 import { lightAt } from './light.js';
-import { spawnSugarDust } from './particles.js';
+import { spawnSugarDust, spawnSparkle } from './particles.js';
 
 const N = CONST.SUGAR_N;
-let grid = new Float32Array(N * N);   // 砂糖の量 0..1
-let img = null;                        // ImageData
-let cvs = null;                        // オフスクリーン
+const PILE_MAX = 1.6;      // 砂糖の最大の厚み
+let grid = new Float32Array(N * N);
+let img = null;
+let cvs = null;
 let gctx = null;
 let dirty = true;
-let updateRow = 0;                     // 段階更新カーソル
+let updateRow = 0;
 let totalSugar = 0;
+let flash = 0;             // 大きく溶けた瞬間の輪郭グロー
 
 export function initSugar() {
   cvs = document.createElement('canvas');
@@ -31,10 +34,10 @@ function cellToLocal(i, j) {
   return { x: (i + 0.5) / N * 2 - 1, y: (j + 0.5) / N * 2 - 1 };
 }
 
-// ふりかける: ローカル座標 (単位系) を中心にまき散らす
+// ふりかける: たっぷり積もる (承認済み: 増量 + 厚み)
 export function sprinkleSugar(lx, ly, amount = 1) {
-  const spread = 0.16;
-  const n = 22 * amount;
+  const spread = 0.17;
+  const n = 30 * amount;
   for (let k = 0; k < n; k++) {
     const a = rand(TAU), d = Math.sqrt(Math.random()) * spread;
     const x = lx + Math.cos(a) * d;
@@ -42,15 +45,14 @@ export function sprinkleSugar(lx, ly, amount = 1) {
     if (x * x + y * y > 0.92) continue;
     const i = clamp(Math.floor((x + 1) / 2 * N), 0, N - 1);
     const j = clamp(Math.floor((y + 1) / 2 * N), 0, N - 1);
-    // 少し塊で積もらせる
     for (let dj = -1; dj <= 1; dj++) {
       for (let di = -1; di <= 1; di++) {
         const ii = i + di, jj = j + dj;
         if (ii < 0 || jj < 0 || ii >= N || jj >= N) continue;
-        const add = (di === 0 && dj === 0 ? 0.5 : 0.18) * rand(0.6, 1);
+        const add = (di === 0 && dj === 0 ? 0.85 : 0.3) * rand(0.6, 1);
         const idx = jj * N + ii;
         const before = grid[idx];
-        grid[idx] = clamp(before + add, 0, 1);
+        grid[idx] = clamp(before + add, 0, PILE_MAX);
         totalSugar += grid[idx] - before;
       }
     }
@@ -62,10 +64,12 @@ export function sprinkleSugar(lx, ly, amount = 1) {
 
 // 段階更新: 毎フレーム数行ずつ光を評価して溶かす
 export function updateSugar(dt) {
+  flash = Math.max(0, flash - dt * 1.8);
   if (totalSugar <= 0.01) return;
-  const rows = 10; // 1フレームに処理する行数
-  const stepDt = dt * (N / rows); // 全行1周分の実効時間
+  const rows = 10;
+  const stepDt = dt * (N / rows);
   let melted = 0;
+  let sparkleBudget = 7; // 溶けのキラキラは1フレームこの数まで
   const c = Math.cos(state.rot), s = Math.sin(state.rot);
   const { cx, cy, R } = state.layout;
   for (let r = 0; r < rows; r++) {
@@ -81,32 +85,48 @@ export function updateSugar(dt) {
       const wy = cy + R * (p.x * s + p.y * c);
       const light = lightAt(wx, wy);
       if (light > CONST.SHADOW_DARK_THRESHOLD) {
-        // 明るいほど早くとける
-        const rate = (light - CONST.SHADOW_DARK_THRESHOLD) * 0.5;
+        // 明るいほど早くとける (承認済み: 2倍速)
+        const rate = (light - CONST.SHADOW_DARK_THRESHOLD) * CONST.SUGAR_MELT_SPEED;
         const before = grid[idx];
         grid[idx] = Math.max(0, before - rate * stepDt);
         melted += before - grid[idx];
         dirty = true;
+        // キラキラ光りながら消えていく
+        if (sparkleBudget > 0 && Math.random() < 0.028) {
+          sparkleBudget--;
+          spawnSparkle(wx, wy, 1, '#ffffff');
+        }
       }
     }
   }
   if (melted > 0) {
     totalSugar = Math.max(0, totalSugar - melted);
     state.counters.sugarMelted += melted;
+    // 大きく溶けている間、残った影の形の輪郭が光る
+    flash = clamp(flash + melted * 0.25, 0, 0.9);
   }
 }
 
-// グリッド → オフスクリーン画像
+// グリッド → オフスクリーン画像 (厚みの陰影つき)
 function renderGrid() {
   const data = img.data;
-  for (let idx = 0; idx < N * N; idx++) {
-    const v = grid[idx];
-    const o = idx * 4;
-    data[o] = 255;
-    data[o + 1] = 253;
-    data[o + 2] = 248;
-    // 粒感のためにわずかなゆらぎ
-    data[o + 3] = v <= 0.003 ? 0 : Math.min(255, v * 235 + ((idx * 2654435761) % 37));
+  for (let j = 0; j < N; j++) {
+    for (let i = 0; i < N; i++) {
+      const idx = j * N + i;
+      const v = grid[idx];
+      const o = idx * 4;
+      if (v <= 0.004) { data[o + 3] = 0; continue; }
+      // 上のセルより低いところは山かげで少し暗く (厚み表現)
+      const above = j > 0 ? grid[idx - N] : v;
+      const shade = clamp((above - v) * 0.7, 0, 0.4);
+      const bright = 255 - shade * 95;
+      data[o] = bright;
+      data[o + 1] = bright - 2;
+      data[o + 2] = Math.min(255, bright + 2);
+      // 厚いほど不透明な白い山 + 粒感のゆらぎ
+      const alpha = 80 + v * 130 + ((idx * 2654435761) % 31);
+      data[o + 3] = Math.min(255, alpha);
+    }
   }
   gctx.putImageData(img, 0, 0);
   dirty = false;
@@ -120,19 +140,26 @@ export function drawSugar(ctx) {
   ctx.translate(cx, cy);
   ctx.rotate(state.rot);
   ctx.imageSmoothingEnabled = true;
-  ctx.globalAlpha = 0.96;
+  // 溶けている間: 残った形の縁が白く光る
+  if (flash > 0.05) {
+    ctx.shadowColor = `rgba(255,255,255,${clamp(flash, 0, 0.85)})`;
+    ctx.shadowBlur = R * 0.07 * flash;
+  }
+  ctx.globalAlpha = 0.97;
   ctx.drawImage(cvs, -R, -R, R * 2, R * 2);
   ctx.restore();
 }
 
 // ふりかけ中の舞う粉の演出
 export function sugarPuff(wx, wy) {
-  spawnSugarDust(wx, wy, state.layout.R * 0.14);
+  spawnSugarDust(wx, wy, state.layout.R * 0.16);
+  spawnSugarDust(wx, wy, state.layout.R * 0.09);
 }
 
 export function clearSugar() {
   grid.fill(0);
   totalSugar = 0;
+  flash = 0;
   dirty = true;
 }
 
