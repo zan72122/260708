@@ -210,14 +210,14 @@ export function drawLamp(ctx) {
   ctx.moveTo(lampX, -10);
   ctx.lineTo(lampX, lampY - r * 0.8);
   ctx.stroke();
-  // 光のにじみ
-  const dim = 1 - state.eclipse * 0.55;
-  const glow = ctx.createRadialGradient(lampX, lampY, r * 0.2, lampX, lampY, r * 3.2);
-  glow.addColorStop(0, `rgba(255,236,170,${0.5 * dim})`);
+  // 光のにじみ (わずかに揺らめく)
+  const dim = (1 - state.eclipse * 0.55) * (1 + 0.05 * Math.sin(state.time * 6.3));
+  const glow = ctx.createRadialGradient(lampX, lampY, r * 0.2, lampX, lampY, r * 3.8);
+  glow.addColorStop(0, `rgba(255,236,170,${0.62 * dim})`);
   glow.addColorStop(1, 'rgba(255,236,170,0)');
   ctx.globalCompositeOperation = 'screen';
   ctx.fillStyle = glow;
-  ctx.beginPath(); ctx.arc(lampX, lampY, r * 3.2, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(lampX, lampY, r * 3.8, 0, TAU); ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
   // かさ
   ctx.fillStyle = '#f3b642';

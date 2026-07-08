@@ -24,6 +24,8 @@ const REACTIONS = {
   honeyPlaced: ['はちみつ とろ〜り', 'あまいよ〜'],
   honeyFlowed: ['ながれてる!', 'あったかいほうへ いくんだね'],
   chocHardened: ['カチカチだ!', 'かげで かたまったよ!'],
+  chocBroken: ['パキッ! おいしそう!', 'われた〜!', 'ぱくって たべたい!'],
+  hintShow: ['クッキーを おさらに かざしてみて!'],
   sugarSprinkled: ['ふわふわ〜', 'ゆきみたい!'],
   fruitLanded: ['おいしそう!', 'かわいいね!'],
   eclipse: ['にっしょくだー!!', 'おひさまが かくれた!'],

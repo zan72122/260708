@@ -9,7 +9,7 @@ import {
 } from './state.js';
 import { addButter } from './butter.js';
 import { addHoney } from './honey.js';
-import { beginChocStroke, addChocPoint } from './choc.js';
+import { beginChocStroke, addChocPoint, breakChocAt } from './choc.js';
 import { sprinkleSugar, sugarPuff } from './sugar.js';
 import { addFruit } from './fruits.js';
 import { rabbitHit, pokeRabbit } from './rabbit.js';
@@ -60,11 +60,17 @@ function onDown(e) {
       s.dx = oc.x - p.x;
       s.dy = oc.y - p.y;
       oc.grabbed = true;
+      state.hintDone = true; // チュートリアルヒント完了
       sfxPop();
       return;
     }
   }
-  // 3. のっているフルーツをつかむ
+  // 3. カチカチのチョコをタップで割る
+  if (breakChocAt(p.x, p.y)) {
+    s.mode = 'broke';
+    return;
+  }
+  // 4. のっているフルーツをつかむ
   const R = state.layout.R;
   for (let i = state.fruits.length - 1; i >= 0; i--) {
     const f = state.fruits[i];
@@ -77,7 +83,7 @@ function onDown(e) {
       return;
     }
   }
-  // 4. 道具のアクション
+  // 5. 道具のアクション
   startToolAction(s, p);
 }
 

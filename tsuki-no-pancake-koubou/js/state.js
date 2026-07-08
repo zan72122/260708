@@ -27,12 +27,18 @@ export const CONST = {
   AMBIENT: 0.12,             // 影の中の最低光量
   SHADOW_LIT_THRESHOLD: 0.55,  // これ以上で「ひなた」
   SHADOW_DARK_THRESHOLD: 0.42, // これ以下で「ひかげ」
-  BUTTER_MAX: 9,             // バターの最大数
-  HONEY_MAX: 46,             // はちみつブロブの最大数
+  BUTTER_MAX: 8,             // バターの最大数
+  HONEY_MAX: 30,             // はちみつブロブの最大数
   CHOC_MAX_POINTS: 900,      // チョコ線の最大点数
   FRUIT_MAX: 14,             // フルーツの最大数
   SUGAR_N: 112,              // 粉砂糖グリッドの解像度
   ECLIPSE_DIST: 0.22,        // 日食判定: 影中心と皿中心の距離 (R比)
+  // 変化スピード (承認済み: 従来の2倍)
+  BUTTER_MELT_SPEED: 1.0,    // バターが溶ける速さ
+  CHOC_HARDEN_SPEED: 3.2,    // チョコが固まる速さ (影の深さに比例する係数)
+  CHOC_REMELT_SPEED: 0.3,    // チョコがひなたで溶けなおす速さ
+  SUGAR_MELT_SPEED: 1.0,     // 粉砂糖が溶ける速さ
+  HONEY_FORCE: 1.4,          // はちみつが明るい方へ向かう力
 };
 
 // ---- 共有状態 ----
@@ -76,6 +82,7 @@ export const state = {
   counters: {
     butterMelted: 0,
     chocHardened: 0,
+    chocBroken: 0,
     sugarSprinkled: 0,
     sugarMelted: 0,
     honeyFlow: 0,
@@ -86,6 +93,7 @@ export const state = {
   },
   starsEarned: 0,
   sizzleLevel: 0, // バターが溶けている強さ (音用)
+  hintDone: false, // チュートリアルヒント (クッキーを動かす) が完了したか
 };
 
 // ---- イベントバス ----

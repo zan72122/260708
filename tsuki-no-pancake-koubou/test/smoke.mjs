@@ -138,6 +138,23 @@ async function run(viewport, tag) {
   if (sim.butterMelt <= 0) errors.push("butter never melted");
   if (sim.chocHard <= 0) errors.push("choc never hardened");
 
+  // おつきさまボードをどかして、カチカチのチョコをタップで割る
+  const moonNow = await page.evaluate(() => {
+    const oc = window.__game.state.occluders.find((o) => o.kind === "moonboard");
+    return { x: oc.x, y: oc.y };
+  });
+  await drag(moonNow.x, moonNow.y, moon.x, moon.y, 150);
+  const before = await page.evaluate(() =>
+    window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0));
+  await tap(geom.cx, geom.cy + geom.R * 0.3);
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({
+    points: window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0),
+    broken: window.__game.state.counters.chocBroken,
+  }));
+  console.log(`[${tag}] choc break:`, before, "->", JSON.stringify(after));
+  if (after.broken < 1 || after.points >= before) errors.push("choc did not break on tap");
+
   // おそうじ
   await page.locator("#btn-clean").dispatchEvent("pointerdown");
   await page.waitForTimeout(400);
