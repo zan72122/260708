@@ -1,0 +1,13 @@
+{
+  "name": "tsuki-no-pancake-koubou",
+  "version": "1.0.0",
+  "description": "4歳児向け 光と影のお料理あそびWebゲーム『つきのパンケーキこうぼう』",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}
