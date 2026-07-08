@@ -34,6 +34,13 @@ const MISSIONS = [
     check: (c, b) => delta(c, b, 'chocHardened'),
   },
   {
+    id: 'break',
+    icon: '💥',
+    text: 'カチカチチョコを タップで わろう',
+    goal: 2,
+    check: (c, b) => delta(c, b, 'chocBroken'),
+  },
+  {
     id: 'honey',
     icon: '🍯',
     text: 'はちみつを あたたかいほうへ ながそう',

@@ -5,7 +5,7 @@
 
 import { TAU, rand, randPick, state } from './state.js';
 
-const MAX = 420;
+const MAX = 900;
 let particles = [];
 
 function push(p) {
@@ -87,6 +87,54 @@ export function spawnHeart(x, y) {
   });
 }
 
+// 境界通過の「いま変わった!」リング
+export function spawnRing(x, y, color = '#ffcf70', size = 14) {
+  push({
+    kind: 'ring', x, y, vx: 0, vy: 0,
+    life: 0.55, t: 0, size, color,
+  });
+}
+
+// チョコが割れたかけら (回転しながら飛ぶ)
+export function spawnShards(x, y, n = 8) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(TAU), sp = rand(60, 190);
+    push({
+      kind: 'shard', x, y,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60,
+      life: rand(0.6, 1.1), t: 0,
+      size: rand(4, 9), spin: rand(TAU), spinV: rand(-12, 12),
+    });
+  }
+  for (let i = 0; i < n; i++) {
+    const a = rand(TAU), sp = rand(30, 110);
+    push({
+      kind: 'crumb', x, y,
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30,
+      life: rand(0.4, 0.8), t: 0, size: rand(1.5, 3),
+    });
+  }
+}
+
+// 固まる時の氷のような結晶 (ひかげの青いきらめき)
+export function spawnCrystal(x, y) {
+  push({
+    kind: 'crystal', x, y,
+    vx: rand(-8, 8), vy: rand(-26, -10),
+    life: rand(0.6, 1.1), t: 0,
+    size: rand(2.5, 5), spin: rand(TAU),
+  });
+}
+
+// バターの湯気 (溶けている間もくもく)
+export function spawnSteamPuff(x, y) {
+  push({
+    kind: 'steam', x, y,
+    vx: rand(-8, 8), vy: rand(-42, -26),
+    life: rand(0.7, 1.3), t: 0, size: rand(4, 9),
+  });
+}
+
 export function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -103,6 +151,13 @@ export function updateParticles(dt) {
     } else if (p.kind === 'dust') {
       p.vy += 26 * dt;
       p.vx *= Math.pow(0.4, dt);
+    } else if (p.kind === 'shard') {
+      p.vy += 380 * dt;
+      p.spin += p.spinV * dt;
+    } else if (p.kind === 'crumb') {
+      p.vy += 260 * dt;
+    } else if (p.kind === 'steam') {
+      p.vx += Math.sin(p.t * 6 + p.size) * 18 * dt;
     }
   }
 }
@@ -154,6 +209,44 @@ export function drawParticles(ctx) {
       ctx.globalAlpha = k;
       ctx.fillStyle = '#ff8fb0';
       heart(ctx, p.x, p.y, p.size);
+    } else if (p.kind === 'ring') {
+      ctx.globalAlpha = k * 0.9;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 3.5 * k + 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (1 + p.t / p.life * 3.2), 0, TAU);
+      ctx.stroke();
+    } else if (p.kind === 'shard') {
+      ctx.globalAlpha = Math.min(1, k * 1.6);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.spin);
+      ctx.fillStyle = '#4a2716';
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+      ctx.fillStyle = 'rgba(255,225,200,0.5)';
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.2);
+      ctx.restore();
+    } else if (p.kind === 'crumb') {
+      ctx.globalAlpha = k;
+      ctx.fillStyle = '#5a3620';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, TAU);
+      ctx.fill();
+    } else if (p.kind === 'crystal') {
+      const tw = 0.5 + 0.5 * Math.abs(Math.sin(p.t * 12 + p.spin));
+      ctx.globalAlpha = k * tw;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.spin + p.t * 2);
+      ctx.fillStyle = '#bfe3ff';
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      ctx.restore();
+    } else if (p.kind === 'steam') {
+      ctx.globalAlpha = Math.sin((p.t / p.life) * Math.PI) * 0.3;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (1 + p.t * 1.8), 0, TAU);
+      ctx.fill();
     }
   }
   ctx.globalAlpha = 1;

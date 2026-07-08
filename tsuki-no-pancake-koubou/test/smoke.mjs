@@ -138,6 +138,42 @@ async function run(viewport, tag) {
   if (sim.butterMelt <= 0) errors.push("butter never melted");
   if (sim.chocHard <= 0) errors.push("choc never hardened");
 
+  // おつきさまボードをどかして、カチカチのチョコをタップで割る
+  const moonNow = await page.evaluate(() => {
+    const oc = window.__game.state.occluders.find((o) => o.kind === "moonboard");
+    return { x: oc.x, y: oc.y };
+  });
+  await drag(moonNow.x, moonNow.y, moon.x, moon.y, 150);
+  await page.waitForTimeout(400);
+  const before = await page.evaluate(() =>
+    window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0));
+  const hardPt = await page.evaluate(() => {
+    const s = window.__game.state;
+    const { cx, cy, R } = s.layout;
+    const rot = s.rot;
+    for (const stroke of s.chocStrokes) {
+      for (const p of stroke.points) {
+        if (p.hard >= 0.55) {
+          const c = Math.cos(rot), sn = Math.sin(rot);
+          return {
+            x: cx + R * (p.lx * c - p.ly * sn),
+            y: cy + R * (p.lx * sn + p.ly * c),
+          };
+        }
+      }
+    }
+    return null;
+  });
+  if (!hardPt) errors.push("no hardened choc point for break test");
+  else await tap(hardPt.x, hardPt.y);
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({
+    points: window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0),
+    broken: window.__game.state.counters.chocBroken,
+  }));
+  console.log(`[${tag}] choc break:`, before, "->", JSON.stringify(after));
+  if (after.broken < 1 || after.points >= before) errors.push("choc did not break on tap");
+
   // おそうじ
   await page.locator("#btn-clean").dispatchEvent("pointerdown");
   await page.waitForTimeout(400);

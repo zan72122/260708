@@ -6,8 +6,8 @@
 
 import { state, CONST, clamp, smoothstep, dist, emit, TAU } from './state.js';
 
-// 光のわずかな傾き: 影は遮蔽物より少し下にずれて見やすくなる
-export const LIGHT_TILT = { x: 0.06, y: 0.13 };
+// 光の傾き: 影は遮蔽物よりはっきり下にずれて「遮っている」ことが見える
+export const LIGHT_TILT = { x: 0.08, y: 0.24 };
 
 // 遮蔽物 (ワールド座標・皿と一緒には回らない)
 export function occluderRadius(kind) {
@@ -51,11 +51,11 @@ function fruitShadow(fruit, wx, wy) {
   const R = state.layout.R;
   const h = R * 0.055; // フルーツの高さ相当
   return {
-    x: wx + h * LIGHT_TILT.x * 3.2,
-    y: wy + h * LIGHT_TILT.y * 3.2,
+    x: wx + h * LIGHT_TILT.x * 4.5,
+    y: wy + h * LIGHT_TILT.y * 4.5,
     r: fruit.shadowR * R,
-    soft: fruit.shadowR * R * 0.55,
-    dark: 0.62,
+    soft: fruit.shadowR * R * 0.5,
+    dark: 0.7,
   };
 }
 
@@ -138,22 +138,35 @@ export function drawShadows(ctx) {
   ctx.restore();
 }
 
-// ひなたの温かいハイライト (overlay)
+// ひなたの温かいスポットライト (影とのコントラストを強く)
 export function drawWarmLight(ctx) {
   const { cx, cy, R } = state.layout;
+  const bright = 1 - state.eclipse * 0.85;
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, TAU);
   ctx.clip();
+  // オレンジの温かみ (overlay)
   ctx.globalCompositeOperation = 'overlay';
   const g = ctx.createRadialGradient(
-    cx - R * 0.25, cy - R * 0.3, R * 0.1,
+    cx - R * 0.2, cy - R * 0.28, R * 0.1,
     cx, cy, R * 1.25
   );
-  const warm = 0.30 * (1 - state.eclipse * 0.85);
-  g.addColorStop(0, `rgba(255,220,150,${warm})`);
+  g.addColorStop(0, `rgba(255,214,140,${0.5 * bright})`);
   g.addColorStop(1, 'rgba(255,190,120,0)');
   ctx.fillStyle = g;
+  ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+  // まぶしいスポット (screen) — ゆらゆら息づく
+  ctx.globalCompositeOperation = 'screen';
+  const pulse = 1 + 0.05 * Math.sin(state.time * 2.1);
+  const s = ctx.createRadialGradient(
+    cx - R * 0.15, cy - R * 0.2, R * 0.05,
+    cx - R * 0.05, cy - R * 0.05, R * 1.05 * pulse
+  );
+  s.addColorStop(0, `rgba(255,244,205,${0.22 * bright})`);
+  s.addColorStop(0.55, `rgba(255,236,180,${0.1 * bright})`);
+  s.addColorStop(1, 'rgba(255,232,170,0)');
+  ctx.fillStyle = s;
   ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
   ctx.restore();
 }
