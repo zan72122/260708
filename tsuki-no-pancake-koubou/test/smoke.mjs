@@ -144,9 +144,28 @@ async function run(viewport, tag) {
     return { x: oc.x, y: oc.y };
   });
   await drag(moonNow.x, moonNow.y, moon.x, moon.y, 150);
+  await page.waitForTimeout(400);
   const before = await page.evaluate(() =>
     window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0));
-  await tap(geom.cx, geom.cy + geom.R * 0.3);
+  const hardPt = await page.evaluate(() => {
+    const s = window.__game.state;
+    const { cx, cy, R } = s.layout;
+    const rot = s.rot;
+    for (const stroke of s.chocStrokes) {
+      for (const p of stroke.points) {
+        if (p.hard >= 0.55) {
+          const c = Math.cos(rot), sn = Math.sin(rot);
+          return {
+            x: cx + R * (p.lx * c - p.ly * sn),
+            y: cy + R * (p.lx * sn + p.ly * c),
+          };
+        }
+      }
+    }
+    return null;
+  });
+  if (!hardPt) errors.push("no hardened choc point for break test");
+  else await tap(hardPt.x, hardPt.y);
   await page.waitForTimeout(300);
   const after = await page.evaluate(() => ({
     points: window.__game.state.chocStrokes.reduce((n, s) => n + s.points.length, 0),
