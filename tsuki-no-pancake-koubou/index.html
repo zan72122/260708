@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0b1035" />
+  <title>つきのパンケーキこうぼう</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ゲーム本体キャンバス -->
+    <canvas id="game"></canvas>
+
+    <!-- ▼ あそんでいるあいだのUI -->
+    <div id="hud">
+      <div id="mission-card">
+        <span id="mission-icon">🧈</span>
+        <div class="mission-body">
+          <span id="mission-text">ひかりで バターを とかそう</span>
+          <div id="mission-dots"></div>
+        </div>
+      </div>
+      <div id="star-badge">⭐<span id="star-count">0</span></div>
+
+      <div id="side-buttons">
+        <button class="round-btn active" id="btn-spin" aria-label="かいてん">🔄</button>
+        <button class="round-btn" id="btn-clean" aria-label="おそうじ">🧽</button>
+        <button class="round-btn" id="btn-sound" aria-label="おと">🔊</button>
+      </div>
+
+      <div id="toolbar"></div>
+    </div>
+
+    <!-- ▼ タイトル -->
+    <section id="screen-title" class="is-active">
+      <div class="title-sky">
+        <span class="tw s1">✦</span><span class="tw s2">✧</span><span class="tw s3">✦</span>
+        <span class="tw s4">✧</span><span class="tw s5">✦</span><span class="tw s6">✧</span>
+      </div>
+      <div class="title-art">
+        <div class="title-moon">🌕</div>
+        <div class="title-pancake">🥞</div>
+        <div class="title-rabbit">🐰</div>
+      </div>
+      <h1 class="title-logo">つきの<br />パンケーキこうぼう</h1>
+      <p class="title-sub">ひかりと かげで おりょうりしよう</p>
+      <button class="big-btn" id="btn-start" aria-label="はじめる">
+        <span class="btn-emoji">▶</span>
+      </button>
+      <button class="round-btn title-sound" id="btn-sound-title" aria-label="おと">🔊</button>
+    </section>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
