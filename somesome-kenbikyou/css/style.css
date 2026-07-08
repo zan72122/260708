@@ -1,0 +1,498 @@
+/* そめそめけんびきょう — パステル手描き風スタイル
+   4歳児向け／スマホ・タブレット対応（縦・横どちらもOK） */
+
+:root {
+  --pink: #ffb7d5;
+  --pink-soft: #ffe2ee;
+  --purple: #c9b6ff;
+  --purple-soft: #ece4ff;
+  --blue: #a9d4ff;
+  --mint: #bff0d8;
+  --cream: #fff6e9;
+  --sun: #ffe08a;
+  --ink: #6b5b73;
+  --paper: #fff9fb;
+  --shadow: rgba(150, 120, 160, 0.25);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c",
+    "Yu Gothic", "Meiryo", sans-serif;
+  color: var(--ink);
+  background: linear-gradient(160deg, #fff2f8 0%, #f1ecff 55%, #e8f7ff 100%);
+  user-select: none;
+  touch-action: manipulation;
+}
+
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ===== 画面きりかえ ===== */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3vmin;
+  animation: pop-in 0.45s ease;
+}
+.screen.is-active { display: flex; }
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ===== ボタン ===== */
+.big-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 40px;
+  background: #fff;
+  box-shadow: 0 8px 0 var(--shadow), inset 0 0 0 6px #fff;
+  width: 30vmin;
+  height: 30vmin;
+  max-width: 170px;
+  max-height: 170px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 var(--shadow); }
+.btn-emoji { font-size: 13vmin; line-height: 1; }
+.big-btn .btn-emoji { filter: drop-shadow(0 3px 0 rgba(0,0,0,0.08)); }
+
+.btn-start { background: radial-gradient(circle at 40% 35%, #fff, var(--pink)); }
+.btn-again { background: radial-gradient(circle at 40% 35%, #fff, var(--mint)); }
+.btn-save { background: radial-gradient(circle at 40% 35%, #fff, var(--sun)); }
+
+.round-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 5px 0 var(--shadow);
+  width: 15vmin;
+  height: 15vmin;
+  max-width: 74px;
+  max-height: 74px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.round-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--shadow); }
+.round-btn .btn-emoji { font-size: 7vmin; }
+
+/* ===== タイトル ===== */
+#screen-title { gap: 2.4vmin; }
+.title-logo {
+  font-size: 11vmin;
+  margin: 0;
+  text-align: center;
+  color: #ff7fb0;
+  text-shadow: 3px 3px 0 #fff, 5px 5px 0 var(--shadow);
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+.title-art { width: 40vmin; max-width: 240px; }
+.btn-gallery-open { position: absolute; left: 4vmin; bottom: 4vmin; }
+.btn-sound { position: absolute; right: 4vmin; bottom: 4vmin; }
+.btn-sound.is-off { opacity: 0.4; }
+
+/* ===== あそぶ画面 ===== */
+#screen-play { justify-content: flex-start; padding-top: 2vmin; }
+.play-head { width: 100%; }
+.step-track {
+  display: flex;
+  gap: 1vmin;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 1.5vmin 1vmin;
+}
+.step-dot {
+  width: 9.4vmin;
+  height: 9.4vmin;
+  max-width: 58px;
+  max-height: 58px;
+  border-radius: 24% 26% 25% 27%;
+  background: #ffffffcc;
+  box-shadow: 0 3px 0 var(--shadow);
+  display: grid;
+  place-items: center;
+  font-size: 4.6vmin;
+  opacity: 0.5;
+  transition: transform 0.25s ease, opacity 0.25s ease, background 0.25s;
+  position: relative;
+}
+.step-dot .dot-label { display: none; }
+.step-dot.done { opacity: 1; background: var(--mint); }
+.step-dot.current {
+  opacity: 1;
+  transform: scale(1.22) rotate(-3deg);
+  background: var(--sun);
+  animation: wiggle 1.4s ease-in-out infinite;
+}
+@keyframes wiggle {
+  0%,100% { transform: scale(1.22) rotate(-3deg); }
+  50% { transform: scale(1.22) rotate(3deg); }
+}
+
+.bench {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 2vmin;
+}
+
+/* びん */
+.jar-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 20vmin;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1vmin;
+}
+.jar {
+  position: relative;
+  width: 42vmin;
+  max-width: 260px;
+  height: 34vmin;
+  max-height: 210px;
+  border-radius: 12% 12% 26% 26%;
+  background: linear-gradient(180deg, #ffffff88, #ffffff44);
+  box-shadow: inset 0 0 0 5px #ffffffcc, 0 10px 0 var(--shadow);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+.jar.hot { animation: jar-bounce 0.5s ease; }
+@keyframes jar-bounce { 50% { transform: translateY(-6px) scale(1.03); } }
+.jar-liquid {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 74%;
+  background: var(--purple);
+  transition: background 0.5s ease;
+}
+.jar-liquid::before {
+  content: "";
+  position: absolute;
+  top: -3vmin; left: 0; right: 0;
+  height: 6vmin;
+  background: inherit;
+  border-radius: 50%;
+  filter: brightness(1.08);
+  animation: liquid-wave 3s ease-in-out infinite;
+}
+@keyframes liquid-wave { 50% { transform: translateY(0.8vmin) scaleX(1.04); } }
+.jar-shine {
+  position: absolute;
+  top: 8%; left: 12%;
+  width: 16%;
+  height: 60%;
+  background: #ffffff88;
+  border-radius: 50%;
+  transform: rotate(14deg);
+}
+.jar-label {
+  font-size: 4.6vmin;
+  font-weight: 700;
+  background: #fff;
+  padding: 0.6vmin 3vmin;
+  border-radius: 30px;
+  box-shadow: 0 4px 0 var(--shadow);
+  white-space: nowrap;
+}
+
+/* つけ時間リング */
+.soak-ring {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.soak-ring.on { opacity: 1; }
+.soak-ring svg { width: 60%; transform: rotate(-90deg); }
+.soak-bg { fill: none; stroke: #ffffff88; stroke-width: 10; }
+.soak-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 327;
+  stroke-dashoffset: 327;
+  filter: drop-shadow(0 0 6px #fff);
+}
+
+/* プレパラート */
+.slide {
+  position: absolute;
+  left: 50%;
+  top: 4vmin;
+  transform: translateX(-50%);
+  touch-action: none;
+  cursor: grab;
+  z-index: 5;
+  transition: filter 0.4s ease;
+}
+.slide:active { cursor: grabbing; }
+.slide-glass {
+  width: 20vmin;
+  max-width: 118px;
+  height: 30vmin;
+  max-height: 176px;
+  background: linear-gradient(160deg, #ffffffcc, #eaf6ffcc);
+  border-radius: 10px;
+  box-shadow: 0 6px 0 var(--shadow), inset 0 0 0 3px #ffffffee;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.slide-tissue {
+  width: 66%;
+  height: 46%;
+  border-radius: 46% 54% 50% 50% / 54% 46% 54% 46%;
+  background: #f4e6ef;
+  box-shadow: inset 0 0 6px #d9c2d0;
+  transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+.slide-hand {
+  position: absolute;
+  bottom: -3vmin;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7vmin;
+  animation: hand-hint 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.slide.grabbed .slide-hand { display: none; }
+@keyframes hand-hint {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(1.5vmin); }
+}
+
+/* えらぶ（水しつ等） */
+.choice-row {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 20vmin;
+  display: none;
+  gap: 3vmin;
+  justify-content: center;
+  z-index: 8;
+}
+.choice-row.on { display: flex; }
+.choice-btn {
+  border: none;
+  cursor: pointer;
+  width: 22vmin;
+  max-width: 130px;
+  height: 22vmin;
+  max-height: 130px;
+  border-radius: 28% 30% 30% 28%;
+  background: #fff;
+  box-shadow: 0 6px 0 var(--shadow);
+  display: grid;
+  place-items: center;
+  gap: 0.5vmin;
+  font-size: 3.4vmin;
+  transition: transform 0.12s;
+}
+.choice-btn:active { transform: translateY(5px); }
+.choice-btn .c-emoji { font-size: 9vmin; }
+
+/* タップおうえん（ふきふき等） */
+.tap-zone {
+  position: absolute;
+  inset: 0;
+  display: none;
+  z-index: 7;
+}
+.tap-zone.on { display: block; }
+
+/* しずくちゃん */
+.mascot {
+  position: absolute;
+  right: 3vmin;
+  bottom: 2vmin;
+  width: 26vmin;
+  max-width: 160px;
+  z-index: 6;
+  pointer-events: none;
+}
+.mascot svg { width: 100%; display: block; }
+.mascot.talk { animation: mascot-hop 0.9s ease-in-out infinite; }
+@keyframes mascot-hop {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-1.6vmin); }
+}
+.speech {
+  position: absolute;
+  right: 24vmin;
+  bottom: 14vmin;
+  max-width: 46vmin;
+  background: #fff;
+  border-radius: 22px;
+  padding: 2vmin 3vmin;
+  font-size: 4.4vmin;
+  font-weight: 700;
+  box-shadow: 0 5px 0 var(--shadow);
+  z-index: 6;
+  opacity: 0;
+  transform: translateY(1vmin);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.speech.on { opacity: 1; transform: translateY(0); }
+.speech::after {
+  content: "";
+  position: absolute;
+  right: -1.6vmin;
+  bottom: 3vmin;
+  border: 2vmin solid transparent;
+  border-left-color: #fff;
+}
+
+/* ===== けっか画面 ===== */
+#screen-result { gap: 2.4vmin; }
+.scope-frame {
+  position: relative;
+  width: 74vmin;
+  max-width: 420px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 2vmin #fff, 0 0 0 3vmin var(--purple-soft),
+    0 14px 0 var(--shadow);
+  background: #f6eefb;
+}
+.scope-frame canvas { width: 100%; height: 100%; display: block; }
+.scope-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 8vmin rgba(80, 50, 90, 0.35);
+  pointer-events: none;
+}
+.result-card { text-align: center; }
+.result-name {
+  font-size: 6.2vmin;
+  font-weight: 800;
+  color: #ff7fb0;
+  text-shadow: 2px 2px 0 #fff;
+}
+.result-tags {
+  display: flex;
+  gap: 1.4vmin;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1.4vmin;
+}
+.tag {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1vmin 2.6vmin;
+  font-size: 3.8vmin;
+  font-weight: 700;
+  box-shadow: 0 3px 0 var(--shadow);
+}
+.result-btns { display: flex; gap: 5vmin; }
+.mascot-result { right: 2vmin; bottom: 2vmin; width: 22vmin; }
+
+/* ===== ずかん ===== */
+#screen-gallery { justify-content: flex-start; }
+.gallery-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3vmin;
+  padding: 2vmin;
+}
+.gallery-title { font-size: 6vmin; color: #b98bd6; margin: 0; }
+.gallery-grid {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30vmin, 1fr));
+  gap: 3vmin;
+  padding: 2vmin;
+  align-content: start;
+}
+.gallery-cell {
+  background: #fff;
+  border-radius: 24px;
+  padding: 2vmin;
+  box-shadow: 0 6px 0 var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1vmin;
+  animation: pop-in 0.4s ease;
+}
+.gallery-cell canvas {
+  width: 100%;
+  border-radius: 50%;
+  background: #f6eefb;
+}
+.gallery-cell .g-name { font-size: 3.6vmin; font-weight: 700; text-align: center; }
+.gallery-empty {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2vmin;
+  font-size: 5vmin;
+  text-align: center;
+}
+.gallery-empty.on { display: flex; }
+.gallery-empty .mascot { position: static; width: 34vmin; }
+
+/* ===== キラキラ演出 ===== */
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 30;
+}
+.sparkle {
+  position: absolute;
+  font-size: 5vmin;
+  animation: sparkle-fly 1.1s ease-out forwards;
+}
+@keyframes sparkle-fly {
+  0% { opacity: 0; transform: translateY(0) scale(0.3) rotate(0); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-24vmin) scale(1.3) rotate(40deg); }
+}
+
+/* 横向きの微調整 */
+@media (orientation: landscape) {
+  .jar-wrap { bottom: 12vmin; }
+  .choice-row { bottom: 12vmin; }
+  .mascot { width: 18vmin; }
+}

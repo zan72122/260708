@@ -1,0 +1,13 @@
+{
+  "name": "somesome-kenbikyou",
+  "version": "1.0.0",
+  "description": "4歳児向け HE染色ごっこ Webゲーム『そめそめけんびきょう』",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

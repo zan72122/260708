@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#ffe9f3" />
+  <title>そめそめけんびきょう</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- しずくちゃんのおへや（ぜんたい） -->
+  <div id="app">
+
+    <!-- ▼ タイトル -->
+    <section id="screen-title" class="screen is-active">
+      <div class="title-art" id="title-mascot"></div>
+      <h1 class="title-logo">そめそめ<br />けんびきょう</h1>
+      <button class="big-btn btn-start" id="btn-start" aria-label="はじめる">
+        <span class="btn-emoji">▶</span>
+      </button>
+      <button class="round-btn btn-gallery-open" id="btn-gallery-open" aria-label="ずかん">
+        <span class="btn-emoji">📖</span>
+      </button>
+      <button class="round-btn btn-sound" id="btn-sound" aria-label="おと">
+        <span class="btn-emoji">🔊</span>
+      </button>
+    </section>
+
+    <!-- ▼ あそぶ（そめる工程） -->
+    <section id="screen-play" class="screen">
+      <header class="play-head">
+        <div class="step-track" id="step-track"></div>
+      </header>
+
+      <div class="bench" id="bench">
+        <div class="bench-guide" id="bench-guide"></div>
+
+        <!-- びん（つけるところ） -->
+        <div class="jar-wrap">
+          <div class="jar" id="jar">
+            <div class="jar-liquid" id="jar-liquid"></div>
+            <div class="jar-shine"></div>
+            <div class="soak-ring" id="soak-ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="soak-bg" cx="60" cy="60" r="52" />
+                <circle class="soak-fill" id="soak-fill" cx="60" cy="60" r="52" />
+              </svg>
+            </div>
+          </div>
+          <div class="jar-label" id="jar-label"></div>
+        </div>
+
+        <!-- プレパラート（ひっぱるもの） -->
+        <div class="slide" id="slide">
+          <div class="slide-glass" id="slide-glass">
+            <div class="slide-tissue" id="slide-tissue"></div>
+          </div>
+          <div class="slide-hand" id="slide-hand">👆</div>
+        </div>
+
+        <!-- 選ぶUI（水しつ等） -->
+        <div class="choice-row" id="choice-row"></div>
+
+        <!-- ふきふき / ふうにゅう など補助 -->
+        <div class="tap-zone" id="tap-zone"></div>
+
+        <!-- しずくちゃん（あんないやく） -->
+        <div class="mascot" id="play-mascot"></div>
+        <div class="speech" id="speech"></div>
+      </div>
+    </section>
+
+    <!-- ▼ けっか（できあがり） -->
+    <section id="screen-result" class="screen">
+      <div class="scope-frame">
+        <canvas id="scope-canvas" width="720" height="720"></canvas>
+        <div class="scope-ring"></div>
+      </div>
+      <div class="result-card">
+        <div class="result-name" id="result-name"></div>
+        <div class="result-tags" id="result-tags"></div>
+      </div>
+      <div class="result-btns">
+        <button class="big-btn btn-again" id="btn-again" aria-label="もういちど">
+          <span class="btn-emoji">🔁</span>
+        </button>
+        <button class="big-btn btn-save" id="btn-save" aria-label="ずかんにいれる">
+          <span class="btn-emoji">📥</span>
+        </button>
+      </div>
+      <div class="mascot mascot-result" id="result-mascot"></div>
+    </section>
+
+    <!-- ▼ ずかん（コレクション） -->
+    <section id="screen-gallery" class="screen">
+      <header class="gallery-head">
+        <button class="round-btn btn-back" id="btn-gallery-back" aria-label="もどる">
+          <span class="btn-emoji">⬅</span>
+        </button>
+        <h2 class="gallery-title">📖 ひょうほん ずかん</h2>
+      </header>
+      <div class="gallery-grid" id="gallery-grid"></div>
+      <div class="gallery-empty" id="gallery-empty">
+        <div class="mascot"></div>
+        <p>まだ ないよ。<br />そめて あつめてね！</p>
+      </div>
+    </section>
+
+    <!-- キラキラ演出レイヤー -->
+    <div class="fx-layer" id="fx-layer"></div>
+  </div>
+
+  <script src="js/audio.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/staining.js"></script>
+  <script src="js/microscope.js"></script>
+  <script src="js/gallery.js"></script>
+  <script src="js/steps.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
